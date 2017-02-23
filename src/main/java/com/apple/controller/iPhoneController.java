@@ -111,4 +111,12 @@ public class iPhoneController {
 		return new ResponseEntity<iPhone>(HttpStatus.NO_CONTENT);
 	}
 
+	// Initialize is to save temp data to db
+	@RequestMapping(value = "/iphone-init", method = RequestMethod.GET)
+	public ResponseEntity<String> initializeiPhone() {
+
+		System.out.println("save temp iPhone data to database");
+		iphoneService.initialize();
+		return new ResponseEntity<String>("temp data saved to db", HttpStatus.OK);
+	}
 }

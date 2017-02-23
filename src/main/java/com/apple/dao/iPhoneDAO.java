@@ -1,76 +1,135 @@
 package com.apple.dao;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
 import com.apple.bean.iPhone;
+import com.apple.common.DBObjectMapper;
+import com.apple.common.MongoConfig;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.WriteResult;
 
 @Repository
 public class iPhoneDAO extends AppleBaseDAO<iPhone> {
 
-	static List<iPhone> iphoneList = getTemporaryList();
+	private static final String collectionName = "iPhone";
+	private static final DBObjectMapper MAPPER = DBObjectMapper.getMapper();
 
 	public List<iPhone> findAllDevices() {
-		return iphoneList;
+
+		List<iPhone> iPhoneList = new ArrayList<>();
+		DBCollection collection = MongoConfig.getCollection(collectionName);
+		DBCursor cursor = collection.find();
+		try {
+			while (cursor.hasNext()) {
+				DBObject dbObject = cursor.next();
+				iPhone iphone = MAPPER.mapToValueObject(dbObject, iPhone.class);
+				iPhoneList.add(iphone);
+			}
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			System.out.println("Exception in findAllDevices" + ex);
+		}
+		System.out.println("iPhone find All Devices success");
+		return iPhoneList;
 	}
 
 	public List<iPhone> filterByValues(String model) {
 
-		List<iPhone> tempiPhoneList = new ArrayList<>();
-
-		for (iPhone iphone : iphoneList) {
-			if (model.equalsIgnoreCase(iphone.getModel())) {
-				tempiPhoneList.add(iphone);
+		List<iPhone> iPhoneList = new ArrayList<>();
+		DBCollection collection = MongoConfig.getCollection(collectionName);
+		DBObject query = new BasicDBObject("model", model);
+		DBCursor cursor = collection.find(query);
+		try {
+			while (cursor.hasNext()) {
+				DBObject dbObject = cursor.next();
+				iPhone iphone = MAPPER.mapToValueObject(dbObject, iPhone.class);
+				iPhoneList.add(iphone);
 			}
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			System.out.println("Exception in filterByValues" + ex);
 		}
-		return tempiPhoneList;
+		System.out.println("iPhone filter By Values success");
+		return iPhoneList;
 	}
 
 	public iPhone findById(String id) {
 
-		iPhone tempiPhone = null;
-
-		for (iPhone iphone : iphoneList) {
-			if (id.equals(iphone.getId())) {
-				tempiPhone = iphone;
-				break;
-			}
+		DBCollection collection = MongoConfig.getCollection(collectionName);
+		DBObject query = new BasicDBObject("_id", id);
+		DBObject dbObject = collection.findOne(query);
+		iPhone iphone = null;
+		try {
+			iphone = MAPPER.mapToValueObject(dbObject, iPhone.class);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			System.out.println("Exception in findById" + ex);
 		}
-		return tempiPhone;
+		System.out.println("iPhone find By Id success");
+		return iphone;
 
 	}
 
 	public void deleteAll() {
-		iphoneList.clear();
+
+		DBCollection collection = MongoConfig.getCollection(collectionName);
+		DBObject query = new BasicDBObject();
+		collection.remove(query);
+		System.out.println("iPhone delete All success");
 	}
 
 	public void deleteById(String id) {
 
-		Iterator<iPhone> iphoneItr = iphoneList.iterator();
-		while (iphoneItr.hasNext()) {
-			iPhone iphone = iphoneItr.next();
-			if (id.equals(iphone.getId())) {
-				iphoneItr.remove();
-				break;
-			}
-		}
+		DBCollection collection = MongoConfig.getCollection(collectionName);
+		DBObject query = new BasicDBObject("_id", id);
+		collection.remove(query);
+		System.out.println("iPhone delete By Id success");
 	}
 
 	public void add(iPhone iphone) {
-		iphoneList.add(iphone);
 
+		try {
+			DBObject dbObject = MAPPER.mapToDBObject(iphone);
+			DBCollection collection = MongoConfig.getCollection(collectionName);
+			WriteResult s = collection.save(dbObject);
+			System.out.println(s);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			System.out.println("Exception in findById" + ex);
+		}
+		System.out.println("iPhone add success");
 	}
 
 	public void update(String id, iPhone iphone) {
 
-		deleteById(id);
-		iphone.setId(id);
-		iphoneList.add(iphone);
+		try {
+			DBObject dbObject = MAPPER.mapToDBObject(iphone);
+			DBCollection collection = MongoConfig.getCollection(collectionName);
+			DBObject query = new BasicDBObject("id", id);
+			collection.update(query, dbObject);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			System.out.println("Exception in findById" + ex);
+		}
+		System.out.println("iPhone update success");
 
 	}
+
+	// initiate call is used to save temp data for testing
+	public void initialize() {
+		for (iPhone iphone : iphoneList) {
+			add(iphone);
+		}
+	}
+
+	static List<iPhone> iphoneList = getTemporaryList();
 
 	private static List<iPhone> getTemporaryList() {
 
