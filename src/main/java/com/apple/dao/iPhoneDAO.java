@@ -44,7 +44,8 @@ public class iPhoneDAO extends AppleBaseDAO<iPhone> {
 
 		List<iPhone> iPhoneList = new ArrayList<>();
 		DBCollection collection = MongoConfig.getCollection(collectionName);
-		DBObject query = new BasicDBObject("model", model);
+		DBObject regex = new BasicDBObject("$regex", "^.*" + model + ".*$");
+		DBObject query = new BasicDBObject("model", regex);
 		DBCursor cursor = collection.find(query);
 		try {
 			while (cursor.hasNext()) {
@@ -99,7 +100,7 @@ public class iPhoneDAO extends AppleBaseDAO<iPhone> {
 			DBObject dbObject = MAPPER.mapToDBObject(iphone);
 			DBCollection collection = MongoConfig.getCollection(collectionName);
 			WriteResult s = collection.save(dbObject);
-			System.out.println(s);
+			System.out.println("new iphone id " + s.getUpsertedId() + " added to db");
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			System.out.println("Exception in findById" + ex);
@@ -112,7 +113,7 @@ public class iPhoneDAO extends AppleBaseDAO<iPhone> {
 		try {
 			DBObject dbObject = MAPPER.mapToDBObject(iphone);
 			DBCollection collection = MongoConfig.getCollection(collectionName);
-			DBObject query = new BasicDBObject("id", id);
+			DBObject query = new BasicDBObject("_id", id);
 			collection.update(query, dbObject);
 		} catch (IOException ex) {
 			ex.printStackTrace();
