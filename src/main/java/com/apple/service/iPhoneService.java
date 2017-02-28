@@ -56,4 +56,9 @@ public class iPhoneService implements AppleService<iPhone> {
 
 	}
 
+	public void initialize() {
+		iphoneDao.initialize();
+
+	}
+
 }

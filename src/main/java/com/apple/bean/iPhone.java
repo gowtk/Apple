@@ -1,7 +1,10 @@
 package com.apple.bean;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class iPhone extends AppleDevice {
 
+	@JsonProperty("_id")
 	private String id;
 
 	private String serialNumber;

@@ -3,7 +3,6 @@ package com.apple.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -63,52 +62,61 @@ public class iPhoneController {
 	// Create a iphone device
 
 	@RequestMapping(value = "/iphone", method = RequestMethod.POST)
-	public ResponseEntity<Void> createiPhone(@RequestBody iPhone iphone) {
+	public ResponseEntity<String> createiPhone(@RequestBody iPhone iphone) {
 
 		System.out.println("Creating iPhone object.");
 		iphoneService.saveDevice(iphone);
-		HttpHeaders headers = new HttpHeaders();
-		return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+		return new ResponseEntity<String>("iphone " + iphone.getModel() + " created successfully", HttpStatus.OK);
 	}
 
 	// Update a iphone device
 
 	@RequestMapping(value = "/iphone/{id}", method = RequestMethod.PUT)
-	public ResponseEntity<iPhone> updateiPhone(@PathVariable("id") String id, @RequestBody iPhone iphone) {
+	public ResponseEntity<String> updateiPhone(@PathVariable("id") String id, @RequestBody iPhone iphone) {
 
 		System.out.println("Updating iPhone object for id " + id);
 		iPhone dbiPhone = iphoneService.getById(id);
 		if (dbiPhone == null) {
 			System.out.println("iPhone object " + id + "is not availabe for update");
-			return new ResponseEntity<iPhone>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>("iphone id " + id + " not available in database", HttpStatus.NOT_FOUND);
 		}
 		iphoneService.updateDevice(id, iphone);
-		return new ResponseEntity<iPhone>(iphone, HttpStatus.OK);
+		return new ResponseEntity<String>("iphone " + iphone.getModel() + " updated successfully", HttpStatus.OK);
 	}
 
 	// Delete a iphone device
 
 	@RequestMapping(value = "/iphone/{id}", method = RequestMethod.DELETE)
-	public ResponseEntity<iPhone> deleteiPhone(@PathVariable("id") String id) {
+	public ResponseEntity<String> deleteiPhone(@PathVariable("id") String id) {
 
 		System.out.println("Deleting iPhone object for id " + id);
 		iPhone iphone = iphoneService.getById(id);
 		if (iphone == null) {
 			System.out.println("Unable to iPhone object with id " + id + " not found");
-			return new ResponseEntity<iPhone>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<String>(HttpStatus.NOT_FOUND);
 		}
 		iphoneService.deleteDeviceById(id);
-		return new ResponseEntity<iPhone>(HttpStatus.NO_CONTENT);
+		return new ResponseEntity<String>(
+				"iphone " + iphone.getModel() + " version " + iphone.getVersion() + " deleted successfully",
+				HttpStatus.OK);
 	}
 
 	// Delete All iphone device
 
 	@RequestMapping(value = "/iphones", method = RequestMethod.DELETE)
-	public ResponseEntity<iPhone> deleteAlliPhone() {
+	public ResponseEntity<String> deleteAlliPhone() {
 
 		System.out.println("Deleting All iPhone objects");
 		iphoneService.deleteAllDevices();
-		return new ResponseEntity<iPhone>(HttpStatus.NO_CONTENT);
+		return new ResponseEntity<String>("all iphone data deleted successfully", HttpStatus.OK);
 	}
 
+	// Initialize is to save temp data to db
+	@RequestMapping(value = "/iphone-init", method = RequestMethod.POST)
+	public ResponseEntity<String> initializeiPhone() {
+
+		System.out.println("save temp iPhone data to database");
+		iphoneService.initialize();
+		return new ResponseEntity<String>("Temp iphone data saved to db successfully", HttpStatus.OK);
+	}
 }
